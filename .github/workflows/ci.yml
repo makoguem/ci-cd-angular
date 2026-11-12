@@ -1,4 +1,4 @@
-name: CI Angular
+name: CI CD Angular
 
 on:
   push:
@@ -8,6 +8,11 @@ on:
     branches:
       - main
   workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   tests-and-build:
@@ -33,5 +38,25 @@ jobs:
       - name: Verifier le code avec ESLint
         run: npm run lint
 
-      - name: Compiler Angular
-        run: npm run build
+      - name: Compiler Angular pour GitHub Pages
+        run: npm run build -- --base-href /ci-cd-angular/
+
+      - name: Envoyer les fichiers de publication
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist/ci-cd-angular/browser
+
+  deploy-production:
+    name: Deployer en production
+    runs-on: ubuntu-latest
+    needs: tests-and-build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Publier sur GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
