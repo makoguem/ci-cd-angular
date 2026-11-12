@@ -1,0 +1,37 @@
+name: CI Angular
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  tests-and-build:
+    name: Tests, Lint et Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Recuperer le code source
+        uses: actions/checkout@v4
+
+      - name: Installer Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Installer les dependances
+        run: npm ci
+
+      - name: Executer les tests
+        run: npm test -- --watch=false
+
+      - name: Verifier le code avec ESLint
+        run: npm run lint
+
+      - name: Compiler Angular
+        run: npm run build
